@@ -31,7 +31,12 @@ app.post('/token', async (req, res) => {
     if (!name) return res.status(400).json({ error: 'Inserisci il nominativo' });
     if (code !== APP_ACCESS_CODE) return res.status(403).json({ error: 'Codice di accesso non valido' });
 
-    const participants = await roomService.listParticipants(ROOM_NAME);
+    let participants = [];
+    try {
+      participants = await roomService.listParticipants(ROOM_NAME);
+    } catch (e) {
+      if (e.code !== 'not_found' && e.status !== 404) throw e;
+    }
     if (participants.length >= maxUsers) return res.status(409).json({ error: 'Canale pieno: massimo 10 utenti' });
 
     const identity = crypto.randomUUID();
